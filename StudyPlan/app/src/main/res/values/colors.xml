@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Material3 colors for glass surface -->
+    <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="surface_container_low">#F7F7F7</color>
+    <color name="surface_container">#F2F2F2</color>
+    <color name="surface_container_high">#ECECEC</color>
+    <color name="surface_container_highest">#E6E6E6</color>
+    
+    <!-- Dark mode surfaces -->
+    <color name="dark_surface_container_lowest">#1A1A1A</color>
+    <color name="dark_surface_container_low">#242424</color>
+    <color name="dark_surface_container">#2D2D2D</color>
+    <color name="dark_surface_container_high">#373737</color>
+    <color name="dark_surface_container_highest">#414141</color>
+    
+    <!-- Status colors -->
+    <color name="scheduled_green">#4CAF50</color>
+    <color name="missed_red">#F44336</color>
+    <color name="done_blue">#2196F3</color>
+</resources>
