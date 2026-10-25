@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OneNote Lite — Markdown Notes</title>
+<meta name="description" content="A ultra-light OneNote-style notes app: sidebar, markdown editing, instant search, preview toggle, local storage. Zero dependencies.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237712AA'/%3E%3Cpath d='M9 23V9h2.6l5.4 8.2V9H20v14h-2.6L12 14.8V23z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ App bar (OneNote purple) ══ -->
+  <header class="appbar" role="banner">
+    <button id="btn-sidebar" class="icon-btn" aria-label="Toggle sidebar (Ctrl+B)" title="Toggle sidebar (Ctrl+B)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM9 5v14"/></svg>
+    </button>
+    <div class="brand">
+      <span class="brand-badge" aria-hidden="true">N</span>
+      <span class="brand-name">OneNote&nbsp;<em>Lite</em></span>
+    </div>
+    <div class="search-wrap" role="search">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="Search notes…   (Ctrl+F)"
+             autocomplete="off" spellcheck="false" aria-label="Search notes">
+      <kbd class="search-kbd" aria-hidden="true">Ctrl F</kbd>
+    </div>
+    <button id="btn-new" class="primary-btn" title="New note (Ctrl+Alt+N)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      <span>New</span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <!-- ══ Sidebar: notebook tabs + section groups + sections ══ -->
+    <aside id="sidebar" class="sidebar" aria-label="Notebooks and sections">
+      <nav id="tree" class="tree" role="tree" aria-label="Sections"></nav>
+      <footer class="sidebar-foot">
+        <span id="storage-info" class="storage-info" title="All data lives in your browser's localStorage"></span>
+        <span class="dot-sep" aria-hidden="true">·</span>
+        <a href="#" id="link-export" title="Download all notes as a JSON backup">Export</a>
+        <label class="import-label" title="Restore from a JSON backup">Import
+          <input type="file" id="file-import" accept=".json,application/json" hidden>
+        </label>
+      </footer>
+    </aside>
+
+    <!-- ══ Main pane ══ -->
+    <main class="main" id="main">
+      <div class="note-header">
+        <h1 id="note-title" class="note-title" contenteditable="true" spellcheck="false"
+            role="textbox" aria-label="Note title" data-placeholder="Untitled page" tabindex="0"></h1>
+        <div class="note-meta">
+          <span id="note-modified" class="note-modified" aria-live="off"></span>
+          <span class="pill" id="word-count" title="Words in this note">0 words</span>
+          <button id="btn-preview" class="toggle-btn" aria-pressed="false" title="Toggle preview (Ctrl+P)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>
+            <span>Preview</span>
+          </button>
+          <button id="btn-delete" class="danger-btn" title="Delete this note (Ctrl+Shift+Backspace)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="editor-area">
+        <textarea id="editor" class="editor" placeholder="Start writing…  Markdown supported."
+                  spellcheck="true" aria-label="Markdown editor"></textarea>
+        <article id="preview" class="preview md" hidden aria-label="Rendered preview" tabindex="0"></article>
+        <div id="welcome" class="welcome" hidden>
+          <div class="welcome-card">
+            <div class="welcome-logo" aria-hidden="true">N</div>
+            <h2>Your notes, distilled.</h2>
+            <p>A featherweight OneNote-style workspace — pure HTML/CSS/JS, no frameworks,<br>
+               runs happily on the weakest hardware. Everything is stored locally.</p>
+            <div class="welcome-actions">
+              <button id="btn-welcome-new" class="primary-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Create a note</span></button>
+              <button id="btn-welcome-sample" class="ghost-btn">Open sample note</button>
+            </div>
+            <ul class="shortcuts-hint">
+              <li><kbd>Ctrl F</kbd> search</li>
+              <li><kbd>Ctrl Alt N</kbd> new note</li>
+              <li><kbd>Ctrl P</kbd> preview</li>
+              <li><kbd>Alt ↑ ↓</kbd> switch notes</li>
+              <li><kbd>Esc</kbd> clear / close</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="statusbar">
+        <span id="save-state" class="save-state" aria-live="polite">Ready</span>
+        <span class="status-spacer"></span>
+        <span id="char-count" class="dim">0 chars</span>
+      </div>
+    </main>
+  </div>
+
+  <!-- ══ Delete confirmation dialog ══ -->
+  <dialog id="dlg-delete">
+    <form method="dialog">
+      <h3>Delete note?</h3>
+      <p id="dlg-delete-text">This page will be permanently removed.</p>
+      <menu>
+        <button value="cancel" class="ghost-btn" id="dlg-cancel">Cancel</button>
+        <button value="ok" class="danger-btn solid" id="dlg-ok">Delete</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</div>
+
+<script src="markdown.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

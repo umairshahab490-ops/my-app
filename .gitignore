@@ -43,3 +43,5 @@ Thumbs.db
 .env.local
 *.env.*
 ```
+# Keep the Gradle wrapper JAR tracked (required for CI builds)
+!android/gradle/wrapper/gradle-wrapper.jar
