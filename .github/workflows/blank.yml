@@ -1,4 +1,5 @@
-# This is a basic workflow to help you get started with Actions
+# CI: builds an installable DEBUG Android APK from the OneNote Lite web app
+# using Capacitor + Gradle, and uploads the APK as a downloadable artifact.
 
 name: CI
 
@@ -13,7 +14,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
   build:
@@ -21,40 +21,56 @@ jobs:
     # label, which migrates to Ubuntu 26.04 after October 19, 2026.
     runs-on: ubuntu-24.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       # v5 targets Node.js 24 and clears the Node 20 deprecation warning.
       - uses: actions/checkout@v5
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
-
-      # Assemble the deployable bundle from the app sources.
-      # OneNote Lite is dependency-free (no bundler/transpiler), so "building"
-      # simply means copying the 4 shipped files into ./dist. Test harnesses,
-      # node_modules, and preview screenshots are intentionally excluded.
-      - name: Build app bundle
-        run: |
-          mkdir -p dist
-          cp OneNote-Clone/index.html \
-             OneNote-Clone/style.css \
-             OneNote-Clone/markdown.js \
-             OneNote-Clone/app.js \
-             dist/
-          ls -la dist
-
-      # Upload the built artifact (v4 runs on Node 24 — no deprecation warning).
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      # Node.js 24 — required by @capacitor/cli (npx cap sync).
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v5
         with:
-          name: build-artifact
-          path: dist/
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # Java 17 — required by Android Gradle Plugin 8.x.
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Android SDK — platform-tools + android-34 (matches compileSdkVersion = 34
+      # in android/variables.gradle) + matching build-tools.
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
+
+      # Install Capacitor CLI/platform packages from the lockfile.
+      - name: Install npm dependencies
+        run: npm ci
+
+      # Copy web assets (www/) into the committed android/ project and update
+      # plugin registration. The android/ folder is already in the repo, so we
+      # deliberately do NOT run `cap add android` here.
+      - name: Sync web assets into the Android project
+        run: npx cap sync android
+
+      # Build the debug (unsigned) APK. Gradle wrapper (gradlew + wrapper jar)
+      # is committed under android/, so no extra Gradle install is needed.
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      # Upload ONLY the APK as the artifact.
+      # v5 runs on Node 24 — clears the Node 20 deprecation warning.
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: lite-onenote-clone-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error

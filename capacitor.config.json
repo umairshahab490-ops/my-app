@@ -1,0 +1,11 @@
+{
+  "appId": "com.umairshahab.onenoteclone",
+  "appName": "Lite OneNote Clone",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "backgroundColor": "#ffffff"
+}
