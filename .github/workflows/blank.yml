@@ -36,3 +36,25 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+
+      # Assemble the deployable bundle from the app sources.
+      # OneNote Lite is dependency-free (no bundler/transpiler), so "building"
+      # simply means copying the 4 shipped files into ./dist. Test harnesses,
+      # node_modules, and preview screenshots are intentionally excluded.
+      - name: Build app bundle
+        run: |
+          mkdir -p dist
+          cp OneNote-Clone/index.html \
+             OneNote-Clone/style.css \
+             OneNote-Clone/markdown.js \
+             OneNote-Clone/app.js \
+             dist/
+          ls -la dist
+
+      # Upload the built artifact (v4 runs on Node 24 — no deprecation warning).
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: dist/
+          if-no-files-found: error
